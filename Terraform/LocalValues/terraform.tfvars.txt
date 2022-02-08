@@ -1,0 +1,7 @@
+my_instance_type = "t2.micro"
+instance_tags = {
+  Name = "ec2terraform-instance"
+  foo = 1256
+}
+
+foobar = [1,2,3,5,6]

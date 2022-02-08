@@ -1,0 +1,73 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+      configuration_aliases = [ aws.east ]
+    }
+  }
+}
+
+# Configure the AWS Provider
+provider "aws" {
+  #version = "~> 2.65"
+  region = "us-east-1"
+}
+
+provider "aws" {
+  alias = "east"
+  region = "us-east-2"
+}
+
+
+
+resource "aws_vpc" "main" {
+   cidr_block = "10.5.0.0/16"
+
+   tags = {
+      Name ="hello vpc "
+  }
+}
+
+module "srinadh_webserver" {
+  source = "../Modules/modules/webserver"
+  #count = 2 meta arguments wont support in terraform 0.12 
+  #for_each = 
+  #C:\Users\QC\project\python workspace\terraform-course\Modules\modules\webserver
+  vpc_id = aws_vpc.main.id
+  cidr_block = "10.5.0.0/16"
+  ami = "ami-061ac2e015473fbe2"
+  instance_type = "t2.micro"
+  instance_name = "terraform-module"
+  
+}
+
+#when we are calling module we can use terraform init everytime
+module "srinadh_webserver_east" {
+  source = "../Modules/modules/webserver"
+  #C:\Users\QC\project\python workspace\terraform-course\Modules\modules\webserver
+  providers = {
+    aws = aws.east
+   }
+  vpc_id = aws_vpc.main.id
+  cidr_block = "10.5.0.0/16"
+  ami = "ami-0629230e074c580f2"
+  instance_type = "t2.large"
+  instance_name = "terraform-module-east"
+  
+}
+
+
+/*resource "aws_elb" "lb" {
+  instances = module.srinadh_webserver.instance.id
+  
+}
+
+output "instance_data" {
+  value = module.srinadh_webserver.instance
+  
+}*/
+
+
+
+#

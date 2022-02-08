@@ -1,0 +1,66 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+}
+
+# Configure the AWS Provider
+provider "aws" {
+  region = "us-east-1"
+}
+
+locals {
+	ingress_rules = [{
+		port        = 443
+		description = "Port 443"
+	},
+	{
+		port        = 80
+		description = "Port 80"
+	}]
+}
+
+data "aws_vpc" "main" {
+	default = true
+}
+
+resource "aws_security_group" "terraform-sg" {
+  name = "tf-sg"
+  vpc_id = data.aws_vpc.main.id
+
+  dynamic "ingress" {
+      for_each = local.ingress_rules
+     # iterator = foo
+      content {
+        description = ingress.value.description
+        from_port = ingress.value.port
+        to_port     = ingress.value.port
+			  protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+      }
+  }
+
+  tags = {
+		Name = "terraform security group"
+	}
+  
+}
+
+/*resource "aws_instance" "web" {
+  #ami           = "ami-061ac2e015473fbe2"
+   ami           = "ami-0b0af3577fe5e3532"
+  instance_type = "t2.large"
+  count = "1"
+  key_name = "aws-devops"
+  tags = {
+      Name ="terraform-ec2instance"
+      foo = "bar"
+
+  }
+}*/
+
+
+#
